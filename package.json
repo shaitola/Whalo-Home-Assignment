@@ -30,6 +30,7 @@
     "@types/node": "^25.5.0",
     "@types/uuid": "^10.0.0",
     "newman": "^6.2.2",
+    "newman-reporter-html": "^1.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

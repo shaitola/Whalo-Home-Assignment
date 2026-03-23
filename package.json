@@ -1,0 +1,36 @@
+{
+  "name": "whalo-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E automated tests for Whalo's Fish of Fortune game backend APIs",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "postman": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json",
+    "postman:html": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json -r html --reporter-html-export postman-report.html",
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "e2e",
+    "playwright",
+    "api-testing",
+    "qa"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.58.2",
+    "dotenv": "^17.3.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/uuid": "^10.0.0",
+    "newman": "^6.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

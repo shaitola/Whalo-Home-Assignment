@@ -1,0 +1,276 @@
+{
+  "info": {
+    "name": "Whalo Fish of Fortune - Wheel Spin E2E",
+    "description": "E2E test collection for Whalo's Fish of Fortune game backend APIs. Tests the Wheel Spin feature with login, spin, and state persistence validation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://fof-devplayground-api.whalosvc.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Login",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Generate unique device ID and login source for this test run",
+              "var uuid = pm.variables.replaceIn('{{$guid}}');",
+              "var deviceId = 'candidate_test_postman_' + uuid;",
+              "var loginSource = 'test_postman_' + uuid.substring(0, 8);",
+              "",
+              "// Store for use in subsequent requests using pm.variables (accessible across requests)",
+              "pm.variables.set('deviceId', deviceId);",
+              "pm.variables.set('loginSource', loginSource);",
+              "",
+              "// Also set as collection variables for persistence",
+              "pm.collectionVariables.set('deviceId', deviceId);",
+              "pm.collectionVariables.set('loginSource', loginSource);",
+              "",
+              "console.log('Device ID:', deviceId);",
+              "console.log('Login Source:', loginSource);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Response status is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response status field is 0', function() {",
+              "    pm.expect(jsonData.status).to.eql(0);",
+              "});",
+              "",
+              "pm.test('AccessToken is present', function() {",
+              "    pm.expect(jsonData.response.LoginResponse).to.have.property('AccessToken');",
+              "    pm.expect(jsonData.response.LoginResponse.AccessToken).to.be.a('string');",
+              "    pm.expect(jsonData.response.LoginResponse.AccessToken.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "pm.test('UserBalance is present', function() {",
+              "    pm.expect(jsonData.response.LoginResponse).to.have.property('UserBalance');",
+              "    pm.expect(jsonData.response.LoginResponse.UserBalance).to.have.property('Coins');",
+              "    pm.expect(jsonData.response.LoginResponse.UserBalance).to.have.property('Energy');",
+              "});",
+              "",
+              "pm.test('AccountCreated field is present', function() {",
+              "    pm.expect(jsonData.response.LoginResponse).to.have.property('AccountCreated');",
+              "});",
+              "",
+              "pm.test('Energy is within valid range', function() {",
+              "    var energy = jsonData.response.LoginResponse.UserBalance.Energy;",
+              "    var maxCapacity = jsonData.response.LoginResponse.UserBalance.MaxEnergyCapacity;",
+              "    pm.expect(energy).to.be.at.least(0);",
+              "    pm.expect(energy).to.be.at.most(maxCapacity);",
+              "});",
+              "",
+              "// Store values for subsequent requests",
+              "pm.variables.set('accessToken', jsonData.response.LoginResponse.AccessToken);",
+              "pm.variables.set('initialCoins', jsonData.response.LoginResponse.UserBalance.Coins);",
+              "pm.variables.set('initialEnergy', jsonData.response.LoginResponse.UserBalance.Energy);",
+              "pm.collectionVariables.set('accessToken', jsonData.response.LoginResponse.AccessToken);",
+              "pm.collectionVariables.set('initialCoins', jsonData.response.LoginResponse.UserBalance.Coins);",
+              "pm.collectionVariables.set('initialEnergy', jsonData.response.LoginResponse.UserBalance.Energy);",
+              "",
+              "console.log('Initial Coins:', jsonData.response.LoginResponse.UserBalance.Coins);",
+              "console.log('Initial Energy:', jsonData.response.LoginResponse.UserBalance.Energy);",
+              "console.log('AccountCreated:', jsonData.response.LoginResponse.AccountCreated);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"DeviceId\": \"{{deviceId}}\",\n    \"LoginSource\": \"{{loginSource}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/frontend/login/v4/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "frontend", "login", "v4", "login"]
+        }
+      }
+    },
+    {
+      "name": "2. Spin Wheel",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Response status is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response status field is 0', function() {",
+              "    pm.expect(jsonData.status).to.eql(0);",
+              "});",
+              "",
+              "pm.test('SelectedIndex is a valid number', function() {",
+              "    pm.expect(jsonData.response).to.have.property('SelectedIndex');",
+              "    pm.expect(jsonData.response.SelectedIndex).to.be.a('number');",
+              "});",
+              "",
+              "pm.test('Rewards array is present and not empty', function() {",
+              "    pm.expect(jsonData.response.SpinResult).to.have.property('Rewards');",
+              "    pm.expect(jsonData.response.SpinResult.Rewards).to.be.an('array');",
+              "    pm.expect(jsonData.response.SpinResult.Rewards.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "pm.test('Coin reward is present with valid amount', function() {",
+              "    var rewards = jsonData.response.SpinResult.Rewards;",
+              "    var coinsReward = rewards.find(function(r) {",
+              "        return r.RewardDefinitionType === 1 && r.RewardResourceType === 1;",
+              "    });",
+              "    pm.expect(coinsReward).to.exist;",
+              "    pm.expect(coinsReward.Amount).to.be.a('number');",
+              "});",
+              "",
+              "pm.test('UserBalance is updated after spin', function() {",
+              "    pm.expect(jsonData.response.SpinResult).to.have.property('UserBalance');",
+              "    pm.expect(jsonData.response.SpinResult.UserBalance).to.have.property('Coins');",
+              "    pm.expect(jsonData.response.SpinResult.UserBalance).to.have.property('Energy');",
+              "});",
+              "",
+              "pm.test('Energy is deducted by 1', function() {",
+              "    var newEnergy = jsonData.response.SpinResult.UserBalance.Energy;",
+              "    var initialEnergy = pm.variables.get('initialEnergy');",
+              "    pm.expect(newEnergy).to.eql(initialEnergy - 1);",
+              "});",
+              "",
+              "// Store values after spin",
+              "pm.variables.set('coinsAfterSpin', jsonData.response.SpinResult.UserBalance.Coins);",
+              "pm.variables.set('energyAfterSpin', jsonData.response.SpinResult.UserBalance.Energy);",
+              "pm.collectionVariables.set('coinsAfterSpin', jsonData.response.SpinResult.UserBalance.Coins);",
+              "pm.collectionVariables.set('energyAfterSpin', jsonData.response.SpinResult.UserBalance.Energy);",
+              "",
+              "var coinsReward = jsonData.response.SpinResult.Rewards.find(function(r) {",
+              "    return r.RewardDefinitionType === 1 && r.RewardResourceType === 1;",
+              "});",
+              "console.log('Coins earned:', coinsReward ? coinsReward.Amount : 0);",
+              "console.log('Coins after spin:', jsonData.response.SpinResult.UserBalance.Coins);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accessToken",
+            "value": "{{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"multiplier\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/frontend/wheel//v1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "frontend", "wheel", "", "v1"]
+        }
+      }
+    },
+    {
+      "name": "3. Relogin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Response status is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response status field is 0', function() {",
+              "    pm.expect(jsonData.status).to.eql(0);",
+              "});",
+              "",
+              "pm.test('AccessToken is present', function() {",
+              "    pm.expect(jsonData.response.LoginResponse).to.have.property('AccessToken');",
+              "});",
+              "",
+              "pm.test('Returning user (AccountCreated should be false)', function() {",
+              "    pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;",
+              "});",
+              "",
+              "pm.test('Coins balance matches after spin (state persisted)', function() {",
+              "    var coinsAfterSpin = pm.variables.get('coinsAfterSpin');",
+              "    var currentCoins = jsonData.response.LoginResponse.UserBalance.Coins;",
+              "    pm.expect(currentCoins).to.eql(coinsAfterSpin);",
+              "});",
+              "",
+              "pm.test('Energy balance matches after spin (state persisted)', function() {",
+              "    var energyAfterSpin = pm.variables.get('energyAfterSpin');",
+              "    var currentEnergy = jsonData.response.LoginResponse.UserBalance.Energy;",
+              "    pm.expect(currentEnergy).to.eql(energyAfterSpin);",
+              "});",
+              "",
+              "pm.test('No duplicate rewards after relogin', function() {",
+              "    var initialCoins = pm.variables.get('initialCoins');",
+              "    var coinsAfterSpin = pm.variables.get('coinsAfterSpin');",
+              "    var currentCoins = jsonData.response.LoginResponse.UserBalance.Coins;",
+              "",
+              "    var expectedDiff = coinsAfterSpin - initialCoins;",
+              "    var actualDiff = currentCoins - initialCoins;",
+              "",
+              "    pm.expect(actualDiff).to.eql(expectedDiff);",
+              "});",
+              "",
+              "console.log('Final Coins:', jsonData.response.LoginResponse.UserBalance.Coins);",
+              "console.log('Final Energy:', jsonData.response.LoginResponse.UserBalance.Energy);",
+              "console.log('State persistence validated successfully!');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"DeviceId\": \"{{deviceId}}\",\n    \"LoginSource\": \"{{loginSource}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/frontend/login/v4/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "frontend", "login", "v4", "login"]
+        }
+      }
+    }
+  ]
+}

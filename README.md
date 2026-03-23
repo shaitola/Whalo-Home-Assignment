@@ -137,6 +137,7 @@ The wheel can return multiple reward types:
 | Wheel is NOT deterministic | Same device produces different spin results across sessions |
 | State persists correctly after relogin | Balance matches between spin response and post-relogin |
 | Wheel returns multiple reward types per spin | Observed coins, gems, and boosters in rewards array |
+| Concurrent user state is fully isolated | 3 simultaneous spins showed no cross-user balance contamination |
 
 ### Test Design Decisions
 

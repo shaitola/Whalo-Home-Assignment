@@ -16,7 +16,8 @@ E2E automated tests for Whalo's Fish of Fortune mobile game backend APIs, focusi
 │   │   ├── wheel-spin-e2e.spec.ts    # Core E2E flow tests
 │   │   ├── state-consistency.spec.ts # State persistence tests
 │   │   ├── bonus-tests.spec.ts       # Bonus/advanced tests
-│   │   └── negative-tests.spec.ts    # Negative/error case tests
+│   │   ├── negative-tests.spec.ts    # Negative/error case tests
+│   │   └── parallel-users.spec.ts    # Parallel users isolation tests
 │   └── types/
 │       └── api.types.ts          # TypeScript interfaces for API responses
 ├── postman/

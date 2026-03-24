@@ -175,7 +175,7 @@ test.describe('Bonus Tests', () => {
     
     expect(relogin.accountCreated).toBe(false);
     expect(relogin.userBalance.Coins).toBe(balanceAfterLastSpin);
-    console.log(`Earned: ${totalCoinsEarned}, Final: ${relogin.userBalance.Coins}`);
+    console.log(`Total spins: ${spinsToPerform}, Earned: ${totalCoinsEarned}, Final: ${relogin.userBalance.Coins}`);
   });
 
   test('should spin until out of energy and validate final balance', async () => {

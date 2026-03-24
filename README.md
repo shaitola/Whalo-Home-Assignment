@@ -106,6 +106,16 @@ npm run postman:html
 4. Select "Whalo E2E Environment"
 5. Run the collection in sequence mode
 
+### Postman Assertions (examples)
+
+The collection includes test scripts with assertions like:
+```javascript
+pm.expect(jsonData.status).to.eql(0);
+pm.expect(jsonData.response.SpinResult.Rewards.length).to.be.greaterThan(0);
+// In relogin step — asserts returning user, not new account
+pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
+```
+
 ## Assumptions & Design Decisions
 
 ### API Behavior Assumptions

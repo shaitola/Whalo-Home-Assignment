@@ -139,53 +139,78 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 
 ### Login Response Field Assumptions
 
-| Field | Expected Type | Validated | Notes |
-|-------|--------------|-----------|-------|
-| `status` | number (0) | ✅ | Success indicator |
-| `response.LoginStatus` | number (0) | ✅ | Secondary status check |
-| `response.LoginResponse.AccessToken` | string (non-empty) | ✅ | Required for subsequent API calls |
-| `response.LoginResponse.AccountCreated` | boolean | ✅ | True for new users, false for returning |
-| `response.LoginResponse.ExternalPlayerId` | string | ✅ | Player identifier |
-| `response.LoginResponse.DisplayName` | string | ✅ | User display name |
-| `response.LoginResponse.Avatar` | number | ✅ | Avatar selection index |
-| `response.LoginResponse.FacebookId` | string | ✅ | Facebook integration ID |
-| `response.LoginResponse.ImageFacebookId` | string | ✅ | Facebook image URL identifier |
-| `response.LoginResponse.CoinsAmount` | number (>= 0) | ✅ | Coin balance (legacy field) |
-| `response.LoginResponse.GemsAmount` | number (>= 0) | ✅ | Gem balance (legacy field) |
-| `response.LoginResponse.EnergyAmount` | number (>= 0) | ✅ | Energy level (legacy field) |
-| `response.LoginResponse.UserBalance.Coins` | number (>= 0) | ✅ | Current coin balance |
-| `response.LoginResponse.UserBalance.Gems` | number (>= 0) | ✅ | Current gem balance |
-| `response.LoginResponse.UserBalance.Energy` | number (0 to MaxCapacity) | ✅ | Current energy level |
-| `response.LoginResponse.UserBalance.MaxEnergyCapacity` | number (> 0) | ✅ | Maximum energy cap |
-| `response.LoginResponse.UserBalance.EnergyExpirationTS` | number (future timestamp) | ✅ | When energy will be fully restored |
-| `response.LoginResponse.UserBalance.EnergyExpirationSeconds` | number | ✅ | Seconds until energy cap |
-| `response.LoginResponse.UserBalance.LastUpdateTS` | number (> 0) | ✅ | Last balance update time |
-| `response.LoginResponse.UserBalance.ShieldsAmount` | number (>= 0) | ✅ | Number of shields |
-| `response.LoginResponse.UserBalance.Shields` | array | ✅ | Shield details array |
-| `response.LoginResponse.EnergyExpirationSeconds` | number | ✅ | Energy regeneration timer |
-| `response.LoginResponse.SessionNumber` | number (>= 0) | ✅ | Total login sessions |
-| `response.LoginResponse.Level` | number (>= 1) | ✅ | Player level |
-| `response.LoginResponse.ExperiencePoints` | number (>= 0) | ✅ | Current XP |
-| `response.LoginResponse.VIPLevel` | number (>= 0) | ✅ | VIP membership level |
-| `response.LoginResponse.StreakDays` | number (>= 0) | ✅ | Daily login streak |
-| `response.LoginResponse.TutorialCompleted` | boolean | ✅ | Onboarding status |
-| `response.LoginResponse.DailyBonusAvailable` | boolean | ✅ | Daily reward eligibility |
-| `response.LoginResponse.NotificationsEnabled` | boolean | ✅ | Push notification setting |
-| `response.LoginResponse.SoundEnabled` | boolean | ✅ | Audio setting |
-| `response.LoginResponse.MusicEnabled` | boolean | ✅ | Music setting |
-| `response.LoginResponse.Campaigns` | array | ✅ | Active campaigns |
-| `response.LoginResponse.SegmentIds` | array | ✅ | User segments |
-| `response.LoginResponse.AbTest` | object | ✅ | A/B test assignments |
+> **Note:** Fields marked with ✅ are validated if present in the response. Fields marked with ⭐ are core/required fields always present in the API response.
+
+| Field | Expected Type | Status | Notes |
+|-------|--------------|--------|-------|
+| `status` | number (0) | ⭐ | Success indicator (required) |
+| `response.LoginStatus` | number (0) | ✅* | Secondary status check |
+| `response.LoginResponse.AccessToken` | string (non-empty) | ⭐ | Required for subsequent API calls |
+| `response.LoginResponse.AccountCreated` | boolean | ⭐ | True for new users, false for returning |
+| `response.LoginResponse.ExternalPlayerId` | string | ✅* | Player identifier |
+| `response.LoginResponse.DisplayName` | string | ✅* | User display name |
+| `response.LoginResponse.Avatar` | number | ✅* | Avatar selection index |
+| `response.LoginResponse.FacebookId` | string | ✅* | Facebook integration ID |
+| `response.LoginResponse.ImageFacebookId` | string | ✅* | Facebook image URL identifier |
+| `response.LoginResponse.CoinsAmount` | number (>= 0) | ✅* | Coin balance (legacy field) |
+| `response.LoginResponse.GemsAmount` | number (>= 0) | ✅* | Gem balance (legacy field) |
+| `response.LoginResponse.EnergyAmount` | number (>= 0) | ✅* | Energy level (legacy field) |
+| `response.LoginResponse.UserBalance.Coins` | number (>= 0) | ⭐ | Current coin balance |
+| `response.LoginResponse.UserBalance.Gems` | number (>= 0) | ⭐ | Current gem balance |
+| `response.LoginResponse.UserBalance.Energy` | number (0 to MaxCapacity) | ⭐ | Current energy level |
+| `response.LoginResponse.UserBalance.MaxEnergyCapacity` | number (> 0) | ⭐ | Maximum energy cap |
+| `response.LoginResponse.UserBalance.EnergyExpirationTS` | number (future timestamp) | ⭐ | When energy will be fully restored |
+| `response.LoginResponse.UserBalance.EnergyExpirationSeconds` | number | ⭐ | Seconds until energy cap |
+| `response.LoginResponse.UserBalance.LastUpdateTS` | number (> 0) | ⭐ | Last balance update time |
+| `response.LoginResponse.UserBalance.ShieldsAmount` | number (>= 0) | ⭐ | Number of shields |
+| `response.LoginResponse.UserBalance.Shields` | array | ⭐ | Shield details array |
+| `response.LoginResponse.SessionNumber` | number (>= 0) | ✅ | Total login sessions (if present) |
+| `response.LoginResponse.Level` | number (>= 1) | ✅ | Player level (if present) |
+| `response.LoginResponse.ExperiencePoints` | number (>= 0) | ✅ | Current XP (if present) |
+| `response.LoginResponse.VIPLevel` | number (>= 0) | ✅ | VIP membership level (if present) |
+| `response.LoginResponse.StreakDays` | number (>= 0) | ✅ | Daily login streak (if present) |
+| `response.LoginResponse.TutorialCompleted` | boolean | ✅ | Onboarding status (if present) |
+| `response.LoginResponse.DailyBonusAvailable` | boolean | ✅ | Daily reward eligibility (if present) |
+| `response.LoginResponse.NotificationsEnabled` | boolean | ✅ | Push notification setting (if present) |
+| `response.LoginResponse.SoundEnabled` | boolean | ✅ | Audio setting (if present) |
+| `response.LoginResponse.MusicEnabled` | boolean | ✅ | Music setting (if present) |
+| `response.LoginResponse.Campaigns` | array | ✅ | Active campaigns (if present) |
+| `response.LoginResponse.SegmentIds` | array | ✅ | User segments (if present) |
+| `response.LoginResponse.AbTest` | object | ✅ | A/B test assignments (if present) |
 
 ### Wheel Spin Response Field Assumptions
 
-| Field | Expected Type | Validated | Notes |
-|-------|--------------|-----------|-------|
-| `status` | number (0) | ✅ | Success indicator |
-| `response.SelectedIndex` | number (>= 0) | ✅ | Wheel wedge index |
-| `response.SpinResult.Rewards` | array (non-empty) | ✅ | List of rewards |
-| `response.SpinResult.Rewards[].RewardDefinitionType` | number | ✅ | 1=reward, 2=promotion, 3=event |
-| `response.SpinResult.Rewards[].RewardResourceType` | number | ✅ | 1=coins, 2=gems, 3=boosters, 0=unknown |
+> **Note:** Fields marked with ✅ are validated if present in the response. Fields marked with ⭐ are core/required fields always present in the API response.
+
+| Field | Expected Type | Status | Notes |
+|-------|--------------|--------|-------|
+| `status` | number (0) | ⭐ | Success indicator (required) |
+| `response.SelectedIndex` | number (>= 0) | ⭐ | Wheel wedge index |
+| `response.SpinResult.Rewards` | array (non-empty) | ⭐ | List of rewards |
+| `response.SpinResult.Rewards[].RewardDefinitionType` | number | ⭐ | 1=reward, 2=promotion, 3=event |
+| `response.SpinResult.Rewards[].RewardResourceType` | number | ⭐ | 1=coins, 2=gems, 3=boosters, 0=unknown |
+| `response.SpinResult.Rewards[].Amount` | number | ⭐ | Reward quantity |
+| `response.SpinResult.Rewards[].TrackingId` | string (non-empty) | ⭐ | Unique reward identifier |
+| `response.SpinResult.Rewards[].Multiplier` | number | ⭐ | Applied multiplier |
+| `response.SpinResult.UserBalance.Coins` | number | ⭐ | Updated coin balance |
+| `response.SpinResult.UserBalance.Energy` | number | ⭐ | Decreased by 1 |
+| `response.SpinResult.UserBalance.Gems` | number | ⭐ | Updated gem balance |
+| `response.SpinResult.UserBalance.ShieldsAmount` | number | ⭐ | Updated shield count |
+| `response.SpinResult.UserBalance.Shields` | array | ⭐ | Shield details |
+| `response.Metus_Rate` | boolean | ✅* | Rating prompt flag |
+| `response.Metuzm_Zam` | boolean | ✅* | Feature flag |
+| `response.Metuzm_Zam_Data` | string | ✅* | Feature flag data |
+| `response.Metuzm_Zam_Data_Hadash` | string | ✅* | Feature flag data (new) |
+| `response.SpinId` | string | ✅ | Spin instance ID (if present) |
+| `response.SpinTimestamp` | number | ✅ | Server timestamp (if present) |
+| `response.SequenceNumber` | number | ✅ | Request sequence (if present) |
+| `response.SessionId` | string | ✅ | Session identifier (if present) |
+| `response.BonusAwarded` | boolean | ✅ | Bonus trigger flag (if present) |
+| `response.LevelUp` | boolean | ✅ | Level increase flag (if present) |
+| `response.FreeSpinsRemaining` | number | ✅ | Free spin count (if present) |
+| `response.DailySpinAvailable` | boolean | ✅ | Daily spin eligibility (if present) |
+| `response.WheelLocked` | boolean | ✅ | Wheel availability (if present) |
+| `response.SpinResult.PointCollectingSummary` | object | ✅ | Tournament points (if present) |
 | `response.SpinResult.Rewards[].Amount` | number | ✅ | Reward quantity |
 | `response.SpinResult.Rewards[].TrackingId` | string (non-empty) | ✅ | Unique reward ID |
 | `response.SpinResult.Rewards[].Multiplier` | number | ✅ | Applied multiplier |

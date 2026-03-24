@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login, loginWithDeviceId } from '../helpers/login.helper';
-import { spinWheel, validateSpinResponse } from '../helpers/wheel.helper';
+import { spinWheel } from '../helpers/wheel.helper';
+import { validateSpinResponse } from '../helpers/validation.helper';
 import { 
   validateRewardAppliedOnce,
   validateNoRollback,
@@ -19,7 +20,8 @@ test.describe('Wheel Spin E2E Flow', () => {
 
     const spinResult = await spinWheel(loginResult.accessToken);
     
-    validateSpinResponse(spinResult.response);
+    const validation = validateSpinResponse(spinResult.response, initialBalance.Energy - 1);
+    expect(validation.isValid, `Spin validation failed: ${validation.errors.join(', ')}`).toBe(true);
 
     const balanceAfterSpin = spinResult.response.response.SpinResult.UserBalance;
     console.log('Balance after spin:', formatBalance(balanceAfterSpin));

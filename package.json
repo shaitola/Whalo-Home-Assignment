@@ -8,8 +8,8 @@
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
-    "postman": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json",
-    "postman:html": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json -r html --reporter-html-export postman-report.html",
+    "postman": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json -e postman/Whalo_E2E_Environment.postman_environment.json",
+    "postman:html": "newman run postman/Whalo_WheelSpin_E2E.postman_collection.json -e postman/Whalo_E2E_Environment.postman_environment.json -r html --reporter-html-export postman-report.html",
     "build": "tsc",
     "lint": "tsc --noEmit"
   },

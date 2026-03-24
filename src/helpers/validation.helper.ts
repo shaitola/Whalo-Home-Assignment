@@ -1,4 +1,4 @@
-import { LoginResponse, LoginResponseData, WheelSpinResponse, UserBalance, Reward } from '../types/api.types';
+import { LoginResponse, WheelSpinResponse, UserBalance, Reward } from '../types/api.types';
 import { REWARD_RESOURCE_TYPES } from '../types/api.types';
 
 export interface LoginValidationResult {

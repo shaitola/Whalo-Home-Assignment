@@ -179,28 +179,12 @@ export interface SpinOutcome {
   selectedIndex: number;
 }
 
-export interface TestContext {
-  deviceId: string;
-  loginSource: string;
-  accessToken: string;
-  initialBalance: UserBalance;
-  balanceAfterSpin: UserBalance;
-  spinOutcome: SpinOutcome;
-}
-
 export const REWARD_RESOURCE_TYPES = {
   NONE: 0,
   COINS: 1,
   GEMS: 2,
   BOOSTERS: 3,
 } as const;
-
-export const REWARD_RESOURCE_TYPE_NAMES: Record<number, string> = {
-  0: 'NONE',
-  1: 'COINS',
-  2: 'GEMS',
-  3: 'BOOSTERS',
-};
 
 export const REWARD_DEFINITION_TYPES = {
   REWARD: 1,

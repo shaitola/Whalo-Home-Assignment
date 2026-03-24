@@ -1,11 +1,6 @@
 import { getFullUrl, config } from './config.helper';
 import { WheelSpinResponse, SpinOutcome, REWARD_RESOURCE_TYPES, Reward } from '../types/api.types';
 
-export interface SpinResult {
-  outcome: SpinOutcome;
-  response: WheelSpinResponse;
-}
-
 export interface AllRewards {
   coins: number;
   gems: number;
@@ -13,7 +8,12 @@ export interface AllRewards {
   rewards: Reward[];
 }
 
-export async function spinWheel(accessToken: string): Promise<SpinResult> {
+export interface SpinWheelResult {
+  outcome: SpinOutcome;
+  response: WheelSpinResponse;
+}
+
+export async function spinWheel(accessToken: string): Promise<SpinWheelResult> {
   const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
 
   const response = await fetch(spinUrl, {
@@ -78,7 +78,7 @@ export function extractAllRewards(rewards: Reward[]): AllRewards {
         result.boosters += reward.Amount;
         break;
       default:
-        console.log(`Unexpected reward type: ${reward.RewardResourceType}`);
+        break;
     }
   }
 

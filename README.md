@@ -58,6 +58,9 @@ E2E automated tests for Whalo's Fish of Fortune mobile game backend APIs, focusi
 | State persists across sessions | Balance after relogin matches balance immediately after spin |
 | No duplicate rewards | Balance difference from initial to relogin equals single spin reward |
 | No rollback | Post-relogin balance is never less than post-spin balance |
+| Energy deducted per spin | Energy decreases by exactly 1 per spin |
+| Multi-spin until energy depleted | Tests ability to spin until energy reaches 0 |
+| Wheel randomness verified | Tests hypothesis that wheel is NOT scripted |
 
 ## How to Run
 
@@ -134,12 +137,39 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 
 ### Multiple Reward Types
 
-The wheel can return multiple reward types:
-- **Coins** (`RewardResourceType=1`) - Primary reward, tracked explicitly
-- **Gems** (`RewardResourceType=2`) - Secondary currency, tracked but not asserted on
-- **Boosters** (`RewardResourceType=3`) - Power-ups, tracked but not asserted on
+The wheel can return multiple reward types per spin:
+- **Coins** (`RewardResourceType=1`) - Primary reward, tracked and asserted explicitly
+- **Gems** (`RewardResourceType=2`) - Secondary currency, logged but not asserted
+- **Boosters** (`RewardResourceType=3`) - Power-ups, logged but not asserted
+- **Unknown** (`RewardResourceType=0`) - Observed in responses, logged for observation
 
-**Design Decision**: We validate coin rewards explicitly because they are the primary test invariant. Other reward types are logged and tracked but not asserted on to keep tests focused on the core wheel spin behavior.
+**Note**: Other reward types can affect the coins balance. We validate the final balance after relogin rather than calculating expected balance from individual rewards to account for these side effects.
+
+### Multi-Spin Until Energy Depleted
+
+Per assignment requirements, tests include spinning until energy reaches 0:
+- `bonus-tests.spec.ts` - "should spin until out of energy and validate final balance"
+- Validates energy decreases to exactly 0
+- Validates final balance persists correctly after relogin
+
+### Wheel Scripted vs Random
+
+Assignment hypothesis: "Each device-id will do the same flow till reached out of energy, you can check that the flows return the same wedges on the wheel"
+
+**Finding**: Wheel is **NOT scripted (randomized)**. Same device produces different `SelectedIndex` values across sessions.
+
+### Assignment Requirements Coverage
+
+| Requirement | Coverage |
+|-------------|----------|
+| Login with DeviceId | ✅ Implemented |
+| Wheel Spin validation | ✅ Implemented |
+| State persistence after relogin | ✅ Implemented |
+| No duplicate rewards | ✅ Implemented |
+| No rollback | ✅ Implemented |
+| Multi-spin until energy depleted | ✅ Implemented |
+| Wheel scripted check | ✅ Tested (found: randomized) |
+| Multiple reward types | ✅ Tracked (coins asserted, others logged) |
 
 ### Actual Findings (Verified via Testing)
 
@@ -170,24 +200,35 @@ The wheel can return multiple reward types:
 
 ### Login Response Fields Validated
 
-- `status` - Must be 0
-- `response.LoginResponse.AccessToken` - Must be non-empty string
-- `response.LoginResponse.AccountCreated` - Boolean indicating new user
-- `response.LoginResponse.UserBalance.Coins` - Must be number >= 0
-- `response.LoginResponse.UserBalance.Energy` - Must be 0 <= Energy <= MaxEnergyCapacity
-- `response.LoginResponse.UserBalance.Gems` - Must be number >= 0
-- `response.LoginResponse.UserBalance.EnergyExpirationTS` - Must be future timestamp
-- `response.LoginResponse.UserBalance.LastUpdateTS` - Must be positive
+| Field | Expected | Assertion |
+|-------|----------|-----------|
+| `status` | 0 | Success indicator |
+| `response.LoginResponse.AccessToken` | Non-empty string | Valid token received |
+| `response.LoginResponse.AccountCreated` | Boolean | True for new users, false for returning |
+| `response.LoginResponse.UserBalance.Coins` | Number >= 0 | Valid balance |
+| `response.LoginResponse.UserBalance.Energy` | 0 <= Energy <= MaxCapacity | Within valid range |
+| `response.LoginResponse.UserBalance.Gems` | Number >= 0 | Valid balance |
+| `response.LoginResponse.UserBalance.MaxEnergyCapacity` | Number > 0 | Energy cap defined |
+| `response.LoginResponse.UserBalance.EnergyExpirationTS` | Future timestamp | Expiration time set |
+| `response.LoginResponse.UserBalance.LastUpdateTS` | Positive number | Last update recorded |
+| `response.LoginResponse.ExternalPlayerId` | String | Player identifier |
+| `response.LoginResponse.DisplayName` | String | User display name |
 
 ### Wheel Spin Response Fields Validated
 
-- `status` - Must be 0 (note: server returns HTTP 200 even for errors, checking body status is critical)
-- `response.SelectedIndex` - Must be valid number (wheel wedge)
-- `response.SpinResult.Rewards` - Must be non-empty array
-- `response.SpinResult.Rewards[].TrackingId` - Must be non-empty string
-- `response.SpinResult.Rewards[].Amount` - Must be positive number for coins
-- `response.SpinResult.UserBalance` - Must contain updated balance
-- `response.Metus_Rate`, `Metuzm_Zam` - Boolean fields (bonus validation)
+| Field | Expected | Assertion |
+|-------|----------|-----------|
+| `status` | 0 | Success (note: HTTP 200 always, check body status) |
+| `response.SelectedIndex` | Number | Valid wheel wedge index |
+| `response.SpinResult.Rewards` | Non-empty array | At least one reward |
+| `response.SpinResult.Rewards[].RewardDefinitionType` | Number | Reward category (1=reward) |
+| `response.SpinResult.Rewards[].RewardResourceType` | Number | Resource type (1=coins, 2=gems, etc.) |
+| `response.SpinResult.Rewards[].Amount` | Number | Reward quantity |
+| `response.SpinResult.Rewards[].TrackingId` | Non-empty string | Unique reward identifier |
+| `response.SpinResult.Rewards[].Multiplier` | Number | Reward multiplier |
+| `response.SpinResult.UserBalance.Coins` | Number | Updated balance |
+| `response.SpinResult.UserBalance.Energy` | Number | Decreased by 1 |
+| `response.Metus_Rate`, `Metuzm_Zam` | Boolean | Bonus fields (observed) |
 
 ## CI/CD Integration
 

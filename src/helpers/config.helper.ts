@@ -13,6 +13,7 @@ export const config = {
     devicePrefix: process.env.TEST_DEVICE_PREFIX || 'candidate_test',
     loginSourcePrefix: process.env.TEST_LOGIN_SOURCE_PREFIX || 'test',
     candidateName: process.env.CANDIDATE_NAME || 'candidate',
+    candidatePhone: process.env.CANDIDATE_PHONE || '05XXXXXXXXX',
     spinMultiplier: 1,
     energyCostPerSpin: 1,
   },

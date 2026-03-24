@@ -19,9 +19,10 @@
           "script": {
             "exec": [
               "// Generate unique device ID and login source for this test run",
+              "// LoginSource format: test_{candidate_phone}_{unique_suffix}",
               "var uuid = pm.variables.replaceIn('{{$guid}}');",
               "var deviceId = 'candidate_test_postman_' + uuid;",
-              "var loginSource = 'test_postman_' + uuid.substring(0, 8);",
+              "var loginSource = 'test_05XXXXXXXXX_' + uuid.substring(0, 8);",
               "",
               "// Store for use in subsequent requests using pm.variables (accessible across requests)",
               "pm.variables.set('deviceId', deviceId);",

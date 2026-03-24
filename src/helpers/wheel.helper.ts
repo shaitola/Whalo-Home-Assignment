@@ -66,6 +66,8 @@ export function extractAllRewards(rewards: Reward[]): AllRewards {
 
   for (const reward of rewards) {
     switch (reward.RewardResourceType) {
+      case REWARD_RESOURCE_TYPES.NONE:
+        break;
       case REWARD_RESOURCE_TYPES.COINS:
         result.coins += reward.Amount;
         break;
@@ -76,7 +78,7 @@ export function extractAllRewards(rewards: Reward[]): AllRewards {
         result.boosters += reward.Amount;
         break;
       default:
-        console.log(`Unknown reward type: ${reward.RewardResourceType}`);
+        console.log(`Unexpected reward type: ${reward.RewardResourceType}`);
     }
   }
 

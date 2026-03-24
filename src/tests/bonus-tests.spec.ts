@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login, loginWithDeviceId } from '../helpers/login.helper';
 import { spinWheel, extractAllRewards } from '../helpers/wheel.helper';
+import { validateLoginResponse, validateSpinResponse } from '../helpers/validation.helper';
 import { config } from '../helpers/config.helper';
 
 test.describe('Bonus Tests', () => {
@@ -129,6 +130,8 @@ test.describe('Bonus Tests', () => {
     expect(balance).toHaveProperty('EnergyExpirationSeconds');
     expect(balance).toHaveProperty('LastUpdateTS');
     expect(balance).toHaveProperty('MaxEnergyCapacity');
+    expect(balance).toHaveProperty('ShieldsAmount');
+    expect(balance).toHaveProperty('Shields');
 
     expect(typeof balance.Coins).toBe('number');
     expect(typeof balance.Gems).toBe('number');
@@ -137,6 +140,8 @@ test.describe('Bonus Tests', () => {
     expect(balance.Energy).toBeLessThanOrEqual(balance.MaxEnergyCapacity);
     expect(balance.EnergyExpirationTS).toBeGreaterThan(Date.now());
     expect(balance.LastUpdateTS).toBeGreaterThan(0);
+    expect(typeof balance.ShieldsAmount).toBe('number');
+    expect(Array.isArray(balance.Shields)).toBe(true);
   });
 
   test('should validate wheel spin response Metus fields', async () => {
@@ -217,5 +222,103 @@ test.describe('Bonus Tests', () => {
     
     expect(relogin.accountCreated).toBe(false);
     expect(relogin.userBalance.Coins).toBe(lastCoinBalance);
+  });
+
+  test('should verify wheel is NOT scripted by comparing same device spins in two sessions', async () => {
+    const deviceId = `${config.test.devicePrefix}_scripted_${Date.now()}`;
+    const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidateName}_scripted_${Date.now()}`;
+
+    const firstLogin = await loginWithDeviceId(deviceId, loginSource);
+    const initialEnergy = firstLogin.userBalance.Energy;
+    console.log(`First session - Starting energy: ${initialEnergy}`);
+
+    const spinsToCompare = Math.min(3, initialEnergy);
+    const firstSessionIndices: number[] = [];
+
+    for (let i = 0; i < spinsToCompare; i++) {
+      const spinResult = await spinWheel(firstLogin.accessToken);
+      firstSessionIndices.push(spinResult.outcome.selectedIndex);
+    }
+    console.log(`First session - ${firstSessionIndices.length} spins, indices: [${firstSessionIndices.join(', ')}]`);
+
+    const secondLogin = await loginWithDeviceId(deviceId, loginSource);
+    expect(secondLogin.accountCreated).toBe(false);
+    const secondSessionEnergy = secondLogin.userBalance.Energy;
+    console.log(`Second session - Starting energy: ${secondSessionEnergy}`);
+
+    const secondSessionIndices: number[] = [];
+    const secondSpinsToCompare = Math.min(3, secondSessionEnergy);
+
+    for (let i = 0; i < secondSpinsToCompare; i++) {
+      const spinResult = await spinWheel(secondLogin.accessToken);
+      secondSessionIndices.push(spinResult.outcome.selectedIndex);
+    }
+    console.log(`Second session - ${secondSessionIndices.length} spins, indices: [${secondSessionIndices.join(', ')}]`);
+
+    expect(firstSessionIndices.length).toBe(secondSessionIndices.length);
+    
+    const firstSequence = firstSessionIndices.join(',');
+    const secondSequence = secondSessionIndices.join(',');
+    const isScripted = firstSequence === secondSequence;
+
+    console.log(`\n=== WHEEL SCRIPTED TEST RESULTS ===`);
+    console.log(`First sequence:  [${firstSequence}]`);
+    console.log(`Second sequence: [${secondSequence}]`);
+    console.log(`Wheel is SCRIPTED: ${isScripted}`);
+    console.log(`=================================\n`);
+
+    test.info().annotations.push({
+      type: 'finding',
+      description: `Wheel scripted test: Same device (${spinsToCompare} spins) produced ${isScripted ? 'IDENTICAL' : 'DIFFERENT'} sequences. ${isScripted ? 'Wheel IS scripted.' : 'Wheel is NOT scripted (randomized).'}`
+    });
+
+    expect(isScripted).toBe(false);
+  });
+
+  test('should validate complete login response with comprehensive field checking', async () => {
+    const loginResult = await login();
+    const validation = validateLoginResponse(loginResult.rawResponse!, true);
+
+    console.log('Login validation results:');
+    console.log(`  - Valid: ${validation.isValid}`);
+    console.log(`  - Errors: ${validation.errors.length}`);
+    console.log(`  - Warnings: ${validation.warnings.length}`);
+    console.log(`  - Fields validated: ${Object.keys(validation.validatedFields).length}`);
+
+    if (validation.errors.length > 0) {
+      console.log(`  - Error details:`);
+      validation.errors.forEach(e => console.log(`    * ${e}`));
+    }
+    if (validation.warnings.length > 0) {
+      console.log(`  - Warning details:`);
+      validation.warnings.forEach(w => console.log(`    * ${w}`));
+    }
+
+    expect(validation.isValid).toBe(true);
+    expect(validation.errors.length).toBe(0);
+    expect(Object.keys(validation.validatedFields).length).toBeGreaterThan(10);
+  });
+
+  test('should validate complete spin response with comprehensive field checking', async () => {
+    const loginResult = await login();
+    const spinResult = await spinWheel(loginResult.accessToken);
+
+    const validation = validateSpinResponse(spinResult.response, loginResult.userBalance.Energy - 1);
+
+    console.log('Spin validation results:');
+    console.log(`  - Valid: ${validation.isValid}`);
+    console.log(`  - Errors: ${validation.errors.length}`);
+    console.log(`  - Warnings: ${validation.warnings.length}`);
+    console.log(`  - Fields validated: ${Object.keys(validation.validatedFields).length}`);
+    console.log(`  - Rewards: coins=${validation.rewardsSummary.coins}, gems=${validation.rewardsSummary.gems}, boosters=${validation.rewardsSummary.boosters}, unknown=${validation.rewardsSummary.unknown}`);
+
+    if (validation.warnings.length > 0) {
+      console.log(`  - Warning details:`);
+      validation.warnings.forEach(w => console.log(`    * ${w}`));
+    }
+
+    expect(validation.isValid).toBe(true);
+    expect(validation.errors.length).toBe(0);
+    expect(validation.rewardsSummary.total).toBeGreaterThan(0);
   });
 });

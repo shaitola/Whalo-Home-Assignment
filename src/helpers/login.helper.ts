@@ -8,11 +8,12 @@ export interface LoginResult {
   deviceId: string;
   loginSource: string;
   accountCreated: boolean;
+  rawResponse?: LoginResponse;
 }
 
 export async function login(): Promise<LoginResult> {
   const deviceId = `${config.test.devicePrefix}_${uuidv4()}`;
-  const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidateName}_${uuidv4().slice(0, 8)}`;
+  const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidatePhone}_${uuidv4().slice(0, 8)}`;
 
   const loginUrl = getFullUrl(config.api.loginEndpoint);
 
@@ -52,6 +53,7 @@ export async function login(): Promise<LoginResult> {
     deviceId,
     loginSource,
     accountCreated: body.response.LoginResponse.AccountCreated ?? false,
+    rawResponse: body,
   };
 }
 
@@ -86,5 +88,6 @@ export async function loginWithDeviceId(deviceId: string, loginSource: string): 
     deviceId,
     loginSource,
     accountCreated: body.response.LoginResponse.AccountCreated ?? false,
+    rawResponse: body,
   };
 }

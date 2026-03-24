@@ -125,10 +125,12 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 |------------|-----------|
 | Energy cost is exactly 1 per spin | Per specification in assignment |
 | Coins reward type is `RewardResourceType=1` with `RewardDefinitionType=1` | As specified in API documentation |
-| Existing DeviceId returns existing user state | As documented in login API |
-| `status: 0` indicates success | Standard API response pattern |
+| DeviceId is the primary user identifier | Used for login and state persistence |
+| `status: 0` indicates success (even on HTTP 200) | API uses body status, not HTTP status for errors |
 | Login response structure has `response.LoginResponse.AccessToken` | Confirmed via API testing |
 | `AccountCreated` field indicates new vs returning user | Observed in API response |
+| Energy regenerates during gameplay | Observed during long-running tests |
+| Wheel is randomized (not scripted) | Tested hypothesis - same device produces different results |
 
 ### Multiple Reward Types
 
@@ -145,10 +147,11 @@ The wheel can return multiple reward types:
 |---------|----------|
 | Login response structure nests data under `response.LoginResponse` | API returns nested structure |
 | New DeviceId does NOT create fresh user with 0 balance | New users receive initial coins balance (~80000) |
-| Wheel is NOT deterministic | Same device produces different spin results across sessions |
+| Wheel is RANDOMIZED (not scripted) | Tested the scripted hypothesis - same device produces different spin results across sessions |
 | State persists correctly after relogin | Balance matches between spin response and post-relogin |
 | Wheel returns multiple reward types per spin | Observed coins, gems, and boosters in rewards array |
 | Concurrent user state is fully isolated | 3 simultaneous spins showed no cross-user balance contamination |
+| Server returns HTTP 200 with non-zero body status for errors | Adjusted test assertions to check body status, not just HTTP status |
 
 ### Test Design Decisions
 
@@ -158,6 +161,7 @@ The wheel can return multiple reward types:
 | Store initial balance before spin | Enable precise validation of reward application |
 | Test both immediate and post-relogin state | Verify both single-session and persistent state |
 | Use sequential tests (workers=1) | API tests don't require parallelization; ensures clean state |
+| Explicit parallel tests in parallel-users.spec.ts | Stress-test backend concurrency with simultaneous spins |
 | Validate balance consistency rather than exact values | Account for potential login bonuses |
 | Validate diffs instead of absolute values | Rewards are randomized, so we validate the delta |
 | Add negative tests | Cover edge cases like invalid tokens |
@@ -177,7 +181,7 @@ The wheel can return multiple reward types:
 
 ### Wheel Spin Response Fields Validated
 
-- `status` - Must be 0
+- `status` - Must be 0 (note: server returns HTTP 200 even for errors, checking body status is critical)
 - `response.SelectedIndex` - Must be valid number (wheel wedge)
 - `response.SpinResult.Rewards` - Must be non-empty array
 - `response.SpinResult.Rewards[].TrackingId` - Must be non-empty string

@@ -3,6 +3,7 @@ import { login, loginWithDeviceId } from '../helpers/login.helper';
 import { spinWheel, extractAllRewards } from '../helpers/wheel.helper';
 import { validateLoginResponse, validateSpinResponse } from '../helpers/validation.helper';
 import { config } from '../helpers/config.helper';
+import { Reward } from '../types/api.types';
 
 test.describe('Bonus Tests', () => {
 
@@ -202,7 +203,7 @@ test.describe('Bonus Tests', () => {
       spinsCompleted++;
       
       const coinsReward = spinResult.response.response.SpinResult.Rewards.find(
-        r => r.RewardResourceType === 1
+        (r: Reward) => r.RewardResourceType === 1
       );
       if (coinsReward?.TrackingId) {
         trackingIds.push(coinsReward.TrackingId);

@@ -1,11 +1,6 @@
 import { getFullUrl, config } from './config.helper';
 import { WheelSpinResponse, SpinOutcome, REWARD_RESOURCE_TYPES, Reward } from '../types/api.types';
 
-export interface SpinResult {
-  outcome: SpinOutcome;
-  response: WheelSpinResponse;
-}
-
 export interface AllRewards {
   coins: number;
   gems: number;
@@ -13,7 +8,12 @@ export interface AllRewards {
   rewards: Reward[];
 }
 
-export async function spinWheel(accessToken: string): Promise<SpinResult> {
+export interface SpinWheelResult {
+  outcome: SpinOutcome;
+  response: WheelSpinResponse;
+}
+
+export async function spinWheel(accessToken: string): Promise<SpinWheelResult> {
   const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
 
   const response = await fetch(spinUrl, {
@@ -78,70 +78,9 @@ export function extractAllRewards(rewards: Reward[]): AllRewards {
         result.boosters += reward.Amount;
         break;
       default:
-        console.log(`Unexpected reward type: ${reward.RewardResourceType}`);
+        break;
     }
   }
 
   return result;
-}
-
-export function validateSpinResponse(response: WheelSpinResponse): void {
-  if (typeof response.status !== 'number' || response.status !== 0) {
-    throw new Error(`Invalid status in spin response: ${response.status}`);
-  }
-
-  if (typeof response.response.SelectedIndex !== 'number') {
-    throw new Error('Missing or invalid SelectedIndex in spin response');
-  }
-
-  if (!Array.isArray(response.response.SpinResult.Rewards)) {
-    throw new Error('Missing or invalid Rewards array in spin response');
-  }
-
-  if (response.response.SpinResult.Rewards.length === 0) {
-    throw new Error('Spin response contains no rewards');
-  }
-
-  for (const reward of response.response.SpinResult.Rewards) {
-    if (typeof reward.RewardDefinitionType !== 'number') {
-      throw new Error('Missing or invalid RewardDefinitionType');
-    }
-    if (typeof reward.RewardResourceType !== 'number') {
-      throw new Error('Missing or invalid RewardResourceType');
-    }
-    if (typeof reward.Amount !== 'number') {
-      throw new Error('Missing or invalid Amount');
-    }
-    if (typeof reward.TrackingId !== 'string' || reward.TrackingId.length === 0) {
-      throw new Error('Missing or invalid TrackingId');
-    }
-    if (typeof reward.Multiplier !== 'number') {
-      throw new Error('Missing or invalid Multiplier');
-    }
-  }
-
-  const coinsReward = response.response.SpinResult.Rewards.find(
-    reward => reward.RewardResourceType === REWARD_RESOURCE_TYPES.COINS
-  );
-
-  if (coinsReward) {
-    if (typeof coinsReward.Amount !== 'number' || coinsReward.Amount < 0) {
-      throw new Error(`Invalid coin reward amount: ${coinsReward.Amount}`);
-    }
-    if (!coinsReward.TrackingId) {
-      throw new Error('Missing TrackingId for coin reward');
-    }
-  }
-
-  if (!response.response.SpinResult.UserBalance) {
-    throw new Error('Missing UserBalance in spin response');
-  }
-
-  if (typeof response.response.SpinResult.UserBalance.Energy !== 'number') {
-    throw new Error('Missing or invalid Energy in spin response');
-  }
-
-  if (typeof response.response.SpinResult.UserBalance.Coins !== 'number') {
-    throw new Error('Missing or invalid Coins in spin response');
-  }
 }

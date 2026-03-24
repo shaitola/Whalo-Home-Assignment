@@ -70,6 +70,7 @@ E2E automated tests for Whalo's Fish of Fortune mobile game backend APIs, focusi
 
 ```bash
 npm install
+cp .env.example .env
 ```
 
 ### Playwright Tests

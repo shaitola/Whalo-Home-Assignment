@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, loginWithDeviceId } from '../helpers/login.helper';
+import { login } from '../helpers/login.helper';
 import { spinWheel } from '../helpers/wheel.helper';
 
 test.describe('State Consistency Tests', () => {
@@ -10,10 +10,10 @@ test.describe('State Consistency Tests', () => {
 
     await spinWheel(loginResult.accessToken);
     
-    const login2 = await loginWithDeviceId(deviceId, loginSource);
+    const login2 = await login(deviceId, loginSource);
     expect(login2.accountCreated).toBe(false);
     
-    const login3 = await loginWithDeviceId(deviceId, loginSource);
+    const login3 = await login(deviceId, loginSource);
     expect(login3.accountCreated).toBe(false);
 
     expect(login2.userBalance.Coins).toBe(login3.userBalance.Coins);
@@ -34,7 +34,7 @@ test.describe('State Consistency Tests', () => {
       balanceAfterLastSpin = spinResult.response.response.SpinResult.UserBalance.Coins;
     }
 
-    const login2 = await loginWithDeviceId(deviceId, loginSource);
+    const login2 = await login(deviceId, loginSource);
     expect(login2.accountCreated).toBe(false);
 
     expect(login2.userBalance.Coins).toBe(balanceAfterLastSpin);
@@ -48,7 +48,7 @@ test.describe('State Consistency Tests', () => {
     const spinResult = await spinWheel(loginResult.accessToken);
     const balanceFromSpinResponse = spinResult.response.response.SpinResult.UserBalance;
 
-    const login2 = await loginWithDeviceId(deviceId, loginSource);
+    const login2 = await login(deviceId, loginSource);
     expect(login2.accountCreated).toBe(false);
 
     expect(login2.userBalance.Coins).toBe(balanceFromSpinResponse.Coins);
@@ -74,7 +74,7 @@ test.describe('State Consistency Tests', () => {
 
     await spinWheel(loginResult.accessToken);
 
-    const login2 = await loginWithDeviceId(deviceId, loginSource);
+    const login2 = await login(deviceId, loginSource);
     expect(login2.accountCreated).toBe(false);
 
     expect(login2.userBalance.Coins).toBeGreaterThan(coinsBefore);

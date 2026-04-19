@@ -7,12 +7,13 @@ E2E automated tests for Whalo's Fish of Fortune mobile game backend APIs, focusi
 ```
 ├── src/
 │   ├── helpers/
-│   │   ├── config.helper.ts      # Configuration and environment setup
-│   │   ├── login.helper.ts       # Login API helper functions
-│   │   ├── wheel.helper.ts       # Wheel spin API helper + extractAllRewards
-│   │   ├── balance.helper.ts     # Balance validation utilities
-│   │   ├── negative.helper.ts    # Error scenario helpers
-│   │   └── validation.helper.ts  # Comprehensive response validation
+│   │   ├── api.helper.ts        # Centralized HTTP client (NEW)
+│   │   ├── config.helper.ts   # Configuration and environment setup
+│   │   ├── login.helper.ts    # Login API helper functions
+│   │   ├── wheel.helper.ts   # Wheel spin API helper + extractAllRewards
+│   │   ├── balance.helper.ts# Balance validation utilities
+│   │   ├── negative.helper.ts# Error scenario helpers
+│   │   └── validation.helper.ts# Response validation
 │   ├── tests/
 │   │   ├── wheel-spin-e2e.spec.ts    # Core E2E flow tests
 │   │   ├── state-consistency.spec.ts # State persistence tests
@@ -144,7 +145,7 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 | Field | Expected Type | Status | Notes |
 |-------|--------------|--------|-------|
 | `status` | number (0) | ⭐ | Success indicator (required) |
-| `response.LoginStatus` | number (0) | ✅* | Secondary status check |
+| `response.LoginStatus` | number (0 or 1) | ✅* | Secondary status check (can be 1) |
 | `response.LoginResponse.AccessToken` | string (non-empty) | ⭐ | Required for subsequent API calls |
 | `response.LoginResponse.AccountCreated` | boolean | ⭐ | True for new users, false for returning |
 | `response.LoginResponse.ExternalPlayerId` | string | ✅* | Player identifier |
@@ -164,19 +165,13 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 | `response.LoginResponse.UserBalance.LastUpdateTS` | number (> 0) | ⭐ | Last balance update time |
 | `response.LoginResponse.UserBalance.ShieldsAmount` | number (>= 0) | ⭐ | Number of shields |
 | `response.LoginResponse.UserBalance.Shields` | array | ⭐ | Shield details array |
-| `response.LoginResponse.SessionNumber` | number (>= 0) | ✅ | Total login sessions (if present) |
-| `response.LoginResponse.Level` | number (>= 1) | ✅ | Player level (if present) |
-| `response.LoginResponse.ExperiencePoints` | number (>= 0) | ✅ | Current XP (if present) |
-| `response.LoginResponse.VIPLevel` | number (>= 0) | ✅ | VIP membership level (if present) |
-| `response.LoginResponse.StreakDays` | number (>= 0) | ✅ | Daily login streak (if present) |
-| `response.LoginResponse.TutorialCompleted` | boolean | ✅ | Onboarding status (if present) |
-| `response.LoginResponse.DailyBonusAvailable` | boolean | ✅ | Daily reward eligibility (if present) |
-| `response.LoginResponse.NotificationsEnabled` | boolean | ✅ | Push notification setting (if present) |
-| `response.LoginResponse.SoundEnabled` | boolean | ✅ | Audio setting (if present) |
-| `response.LoginResponse.MusicEnabled` | boolean | ✅ | Music setting (if present) |
-| `response.LoginResponse.Campaigns` | array | ✅ | Active campaigns (if present) |
-| `response.LoginResponse.SegmentIds` | array | ✅ | User segments (if present) |
-| `response.LoginResponse.AbTest` | object | ✅ | A/B test assignments (if present) |
+| `response.LoginResponse.Level` | object (complex) | ✅ | Player level info (not a number!) |
+| `response.LoginResponse.Cards` | array | ✅ | Level card rewards |
+| `response.LoginResponse.Wheel` | object | ✅ | Wheel configuration |
+| `response.LoginResponse.Session` | object | ✅ | Session information |
+| `response.LoginResponse.ShortId` | object | ✅ | Short link info |
+| `response.LoginResponse.RefreshToken` | string | ✅ | Refresh token |
+| `response.LoginResponse.RefreshTokenUsedForLogin` | boolean | ✅ | Token usage flag |
 
 ### Wheel Spin Response Field Assumptions
 
@@ -197,42 +192,11 @@ pm.expect(jsonData.response.LoginResponse.AccountCreated).to.be.false;
 | `response.SpinResult.UserBalance.Gems` | number | ⭐ | Updated gem balance |
 | `response.SpinResult.UserBalance.ShieldsAmount` | number | ⭐ | Updated shield count |
 | `response.SpinResult.UserBalance.Shields` | array | ⭐ | Shield details |
-| `response.Metus_Rate` | boolean | ✅* | Rating prompt flag |
-| `response.Metuzm_Zam` | boolean | ✅* | Feature flag |
-| `response.Metuzm_Zam_Data` | string | ✅* | Feature flag data |
-| `response.Metuzm_Zam_Data_Hadash` | string | ✅* | Feature flag data (new) |
-| `response.SpinId` | string | ✅ | Spin instance ID (if present) |
-| `response.SpinTimestamp` | number | ✅ | Server timestamp (if present) |
-| `response.SequenceNumber` | number | ✅ | Request sequence (if present) |
-| `response.SessionId` | string | ✅ | Session identifier (if present) |
-| `response.BonusAwarded` | boolean | ✅ | Bonus trigger flag (if present) |
-| `response.LevelUp` | boolean | ✅ | Level increase flag (if present) |
-| `response.FreeSpinsRemaining` | number | ✅ | Free spin count (if present) |
-| `response.DailySpinAvailable` | boolean | ✅ | Daily spin eligibility (if present) |
-| `response.WheelLocked` | boolean | ✅ | Wheel availability (if present) |
-| `response.SpinResult.PointCollectingSummary` | object | ✅ | Tournament points (if present) |
-| `response.SpinResult.Rewards[].Amount` | number | ✅ | Reward quantity |
-| `response.SpinResult.Rewards[].TrackingId` | string (non-empty) | ✅ | Unique reward ID |
-| `response.SpinResult.Rewards[].Multiplier` | number | ✅ | Applied multiplier |
-| `response.SpinResult.UserBalance.Coins` | number | ✅ | Updated coin balance |
-| `response.SpinResult.UserBalance.Energy` | number | ✅ | Decreased by 1 |
-| `response.SpinResult.UserBalance.Gems` | number | ✅ | Updated gem balance |
-| `response.SpinResult.UserBalance.ShieldsAmount` | number | ✅ | Updated shield count |
-| `response.SpinResult.UserBalance.Shields` | array | ✅ | Shield details |
-| `response.Metus_Rate` | boolean | ✅ | Rating prompt flag |
-| `response.Metuzm_Zam` | boolean | ✅ | Feature flag |
-| `response.Metuzm_Zam_Data` | string | ✅ | Feature flag data |
-| `response.Metuzm_Zam_Data_Hadash` | string | ✅ | Feature flag data (new) |
-| `response.SpinId` | string | ✅ | Spin instance ID |
-| `response.SpinTimestamp` | number | ✅ | Server timestamp |
-| `response.SequenceNumber` | number | ✅ | Request sequence |
-| `response.SessionId` | string | ✅ | Session identifier |
-| `response.BonusAwarded` | boolean | ✅ | Bonus trigger flag |
-| `response.LevelUp` | boolean | ✅ | Level increase flag |
-| `response.FreeSpinsRemaining` | number | ✅ | Free spin count |
-| `response.DailySpinAvailable` | boolean | ✅ | Daily spin eligibility |
-| `response.WheelLocked` | boolean | ✅ | Wheel availability |
-| `response.SpinResult.PointCollectingSummary` | object | ✅ | Tournament points |
+| `response.Metus_Rate` | boolean | ⭐ | Rating prompt flag |
+| `response.Metuzm_Zam` | boolean | ⭐ | Feature flag |
+| `response.Metuzm_Zam_Data` | string | ⭐ | Feature flag data |
+| `response.Metuzm_Zam_Data_Hadash` | string | ⭐ | Feature flag data (new) |
+| `response.SpinResult.PointCollectingSummary.tournaments` | array | ✅ | Tournament points (only field returned) |
 
 ### Multiple Reward Types
 

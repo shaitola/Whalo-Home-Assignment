@@ -121,59 +121,74 @@ export function validateLoginResponse(response: LoginResponse, isNewUser: boolea
 
   validateUserBalance(loginResponse.UserBalance, result);
 
-  if (loginResponse.SessionNumber !== undefined) {
-    result.validatedFields['response.LoginResponse.SessionNumber'] = { value: loginResponse.SessionNumber, type: 'number' };
-    if (typeof loginResponse.SessionNumber !== 'number' || loginResponse.SessionNumber < 0) {
-      result.warnings.push('SessionNumber is invalid');
-    }
+  if (typeof loginResponse.AbTest !== 'object' || loginResponse.AbTest === null) {
+    result.warnings.push('AbTest is not an object');
+  } else {
+    result.validatedFields['response.LoginResponse.AbTest'] = { value: 'present', type: 'object' };
   }
 
-  if (loginResponse.Level !== undefined) {
-    result.validatedFields['response.LoginResponse.Level'] = { value: loginResponse.Level, type: 'number' };
-    if (typeof loginResponse.Level !== 'number' || loginResponse.Level < 1) {
-      result.warnings.push('Level is invalid');
-    }
+  if (typeof loginResponse.Campaigns !== 'object' || !Array.isArray(loginResponse.Campaigns)) {
+    result.warnings.push('Campaigns is not an array');
   }
 
-  if (loginResponse.ExperiencePoints !== undefined) {
-    result.validatedFields['response.LoginResponse.ExperiencePoints'] = { value: loginResponse.ExperiencePoints, type: 'number' };
-    if (typeof loginResponse.ExperiencePoints !== 'number' || loginResponse.ExperiencePoints < 0) {
-      result.warnings.push('ExperiencePoints is invalid');
-    }
+  if (typeof loginResponse.SegmentIds !== 'object' || !Array.isArray(loginResponse.SegmentIds)) {
+    result.warnings.push('SegmentIds is not an array');
   }
 
-  if (loginResponse.VIPLevel !== undefined) {
-    result.validatedFields['response.LoginResponse.VIPLevel'] = { value: loginResponse.VIPLevel, type: 'number' };
-    if (typeof loginResponse.VIPLevel !== 'number' || loginResponse.VIPLevel < 0) {
-      result.warnings.push('VIPLevel is invalid');
-    }
+  if (typeof loginResponse.ImageFacebookId !== 'string') {
+    result.warnings.push('ImageFacebookId is not a string');
+  } else {
+    result.validatedFields['response.LoginResponse.ImageFacebookId'] = { value: loginResponse.ImageFacebookId, type: 'string' };
   }
 
-  if (loginResponse.StreakDays !== undefined) {
-    result.validatedFields['response.LoginResponse.StreakDays'] = { value: loginResponse.StreakDays, type: 'number' };
-    if (typeof loginResponse.StreakDays !== 'number' || loginResponse.StreakDays < 0) {
-      result.warnings.push('StreakDays is invalid');
-    }
+  if (typeof loginResponse.Level !== 'object' || loginResponse.Level === null) {
+    result.warnings.push('Level is not an object');
+  } else {
+    result.validatedFields['response.LoginResponse.Level'] = { value: 'present', type: 'object' };
   }
 
-  if (loginResponse.TutorialCompleted !== undefined) {
-    result.validatedFields['response.LoginResponse.TutorialCompleted'] = { value: loginResponse.TutorialCompleted, type: 'boolean' };
+  if (typeof loginResponse.Cards !== 'object' || !Array.isArray(loginResponse.Cards)) {
+    result.warnings.push('Cards is not an array');
+  } else {
+    result.validatedFields['response.LoginResponse.Cards'] = { value: `array[${loginResponse.Cards.length}]`, type: 'array' };
   }
 
-  if (loginResponse.DailyBonusAvailable !== undefined) {
-    result.validatedFields['response.LoginResponse.DailyBonusAvailable'] = { value: loginResponse.DailyBonusAvailable, type: 'boolean' };
+  if (typeof loginResponse.Boosters !== 'object' || !Array.isArray(loginResponse.Boosters)) {
+    result.warnings.push('Boosters is not an array');
   }
 
-  if (loginResponse.NotificationsEnabled !== undefined) {
-    result.validatedFields['response.LoginResponse.NotificationsEnabled'] = { value: loginResponse.NotificationsEnabled, type: 'boolean' };
+  if (typeof loginResponse.CashKing !== 'object') {
+    result.warnings.push('CashKing is not an object');
   }
 
-  if (loginResponse.SoundEnabled !== undefined) {
-    result.validatedFields['response.LoginResponse.SoundEnabled'] = { value: loginResponse.SoundEnabled, type: 'boolean' };
+  if (typeof loginResponse.Wheel !== 'object' || loginResponse.Wheel === null) {
+    result.warnings.push('Wheel is not an object');
+  } else {
+    result.validatedFields['response.LoginResponse.Wheel'] = { value: 'present', type: 'object' };
   }
 
-  if (loginResponse.MusicEnabled !== undefined) {
-    result.validatedFields['response.LoginResponse.MusicEnabled'] = { value: loginResponse.MusicEnabled, type: 'boolean' };
+  if (typeof loginResponse.Session !== 'object' || loginResponse.Session === null) {
+    result.warnings.push('Session is not an object');
+  } else {
+    result.validatedFields['response.LoginResponse.Session'] = { value: 'present', type: 'object' };
+  }
+
+  if (typeof loginResponse.ShortId !== 'object' || loginResponse.ShortId === null) {
+    result.warnings.push('ShortId is not an object');
+  } else {
+    result.validatedFields['response.LoginResponse.ShortId'] = { value: 'present', type: 'object' };
+  }
+
+  if (typeof loginResponse.RefreshToken !== 'string') {
+    result.warnings.push('RefreshToken is not a string');
+  } else {
+    result.validatedFields['response.LoginResponse.RefreshToken'] = { value: loginResponse.RefreshToken, type: 'string' };
+  }
+
+  if (typeof loginResponse.RefreshTokenUsedForLogin !== 'boolean') {
+    result.warnings.push('RefreshTokenUsedForLogin is not a boolean');
+  } else {
+    result.validatedFields['response.LoginResponse.RefreshTokenUsedForLogin'] = { value: loginResponse.RefreshTokenUsedForLogin, type: 'boolean' };
   }
 
   return result;
@@ -249,14 +264,6 @@ function validateUserBalance(balance: UserBalance, result: LoginValidationResult
     result.warnings.push('Shields is not an array');
   } else {
     result.validatedFields['response.LoginResponse.UserBalance.Shields'] = { value: `array[${balance.Shields.length}]`, type: 'array' };
-  }
-
-  if (balance?.ExperiencePoints !== undefined) {
-    result.validatedFields['response.LoginResponse.UserBalance.ExperiencePoints'] = { value: balance.ExperiencePoints, type: 'number' };
-  }
-
-  if (balance?.Level !== undefined) {
-    result.validatedFields['response.LoginResponse.UserBalance.Level'] = { value: balance.Level, type: 'number' };
   }
 }
 
@@ -348,45 +355,6 @@ export function validateSpinResponse(response: WheelSpinResponse, expectedEnergy
     result.warnings.push('Metuzm_Zam_Data_Hadash is not a string');
   } else {
     result.validatedFields['response.Metuzm_Zam_Data_Hadash'] = { value: response.response.Metuzm_Zam_Data_Hadash, type: 'string' };
-  }
-
-  if (response.response.SpinId !== undefined) {
-    result.validatedFields['response.SpinId'] = { value: response.response.SpinId, type: 'string' };
-  }
-
-  if (response.response.SpinTimestamp !== undefined) {
-    result.validatedFields['response.SpinTimestamp'] = { value: response.response.SpinTimestamp, type: 'number' };
-    if (typeof response.response.SpinTimestamp !== 'number') {
-      result.warnings.push('SpinTimestamp is not a number');
-    }
-  }
-
-  if (response.response.SequenceNumber !== undefined) {
-    result.validatedFields['response.SequenceNumber'] = { value: response.response.SequenceNumber, type: 'number' };
-  }
-
-  if (response.response.SessionId !== undefined) {
-    result.validatedFields['response.SessionId'] = { value: response.response.SessionId, type: 'string' };
-  }
-
-  if (response.response.BonusAwarded !== undefined) {
-    result.validatedFields['response.BonusAwarded'] = { value: response.response.BonusAwarded, type: 'boolean' };
-  }
-
-  if (response.response.LevelUp !== undefined) {
-    result.validatedFields['response.LevelUp'] = { value: response.response.LevelUp, type: 'boolean' };
-  }
-
-  if (response.response.FreeSpinsRemaining !== undefined) {
-    result.validatedFields['response.FreeSpinsRemaining'] = { value: response.response.FreeSpinsRemaining, type: 'number' };
-  }
-
-  if (response.response.DailySpinAvailable !== undefined) {
-    result.validatedFields['response.DailySpinAvailable'] = { value: response.response.DailySpinAvailable, type: 'boolean' };
-  }
-
-  if (response.response.WheelLocked !== undefined) {
-    result.validatedFields['response.WheelLocked'] = { value: response.response.WheelLocked, type: 'boolean' };
   }
 
   return result;

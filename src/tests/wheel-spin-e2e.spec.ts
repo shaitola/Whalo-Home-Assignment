@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, loginWithDeviceId } from '../helpers/login.helper';
+import { login } from '../helpers/login.helper';
 import { spinWheel } from '../helpers/wheel.helper';
 import { validateSpinResponse } from '../helpers/validation.helper';
 import { 
@@ -37,7 +37,7 @@ test.describe('Wheel Spin E2E Flow', () => {
     );
 
     console.log('Re-logging in to verify state persistence...');
-    const reloginResult = await loginWithDeviceId(deviceId, loginSource);
+    const reloginResult = await login(deviceId, loginSource);
     const balanceAfterRelogin = reloginResult.userBalance;
 
     console.log('Balance after relogin:', formatBalance(balanceAfterRelogin));
@@ -83,7 +83,7 @@ test.describe('Wheel Spin E2E Flow', () => {
     const spinResult = await spinWheel(loginResult.accessToken);
     const balanceAfterSpin = spinResult.response.response.SpinResult.UserBalance;
 
-    const reloginResult = await loginWithDeviceId(deviceId, loginSource);
+    const reloginResult = await login(deviceId, loginSource);
     
     expect(reloginResult.accountCreated).toBe(false);
     expect(reloginResult.userBalance.Coins).toBe(balanceAfterSpin.Coins);

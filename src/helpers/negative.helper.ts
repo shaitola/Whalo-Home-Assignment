@@ -1,4 +1,5 @@
-import { getFullUrl, config } from './config.helper';
+import { config } from './config.helper';
+import { apiPost } from './api.helper';
 import { WheelSpinResponse } from '../types/api.types';
 
 export interface ApiErrorResult {
@@ -6,68 +7,18 @@ export interface ApiErrorResult {
   errorStatus: number;
 }
 
-export async function spinWithInvalidToken(token: string): Promise<ApiErrorResult> {
-  const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
-
-  const response = await fetch(spinUrl, {
-    method: 'POST',
-    headers: {
-      'accessToken': token,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      multiplier: 1,
-    }),
+async function spinWithError(token: string, payload: object): Promise<ApiErrorResult> {
+  const body = await apiPost<WheelSpinResponse>(config.api.wheelSpinEndpoint, {
+    headers: { 'accessToken': token },
+    data: payload,
   });
 
-  const body = await response.json() as WheelSpinResponse;
-
   return {
-    status: response.status,
+    status: 200, 
     errorStatus: body.status,
   };
 }
 
-export async function spinWithMalformedPayload(token: string): Promise<ApiErrorResult> {
-  const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
-
-  const response = await fetch(spinUrl, {
-    method: 'POST',
-    headers: {
-      'accessToken': token,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      multiplier: 'not_a_number',
-    }),
-  });
-
-  const body = await response.json() as WheelSpinResponse;
-
-  return {
-    status: response.status,
-    errorStatus: body.status,
-  };
-}
-
-export async function spinAfterDrain(token: string): Promise<ApiErrorResult> {
-  const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
-
-  const response = await fetch(spinUrl, {
-    method: 'POST',
-    headers: {
-      'accessToken': token,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      multiplier: 1,
-    }),
-  });
-
-  const body = await response.json() as WheelSpinResponse;
-
-  return {
-    status: response.status,
-    errorStatus: body.status,
-  };
-}
+export const spinWithInvalidToken = (token: string) => spinWithError(token, { multiplier: 1 });
+export const spinWithMalformedPayload = (token: string) => spinWithError(token, { multiplier: 'not_a_number' });
+export const spinAfterDrain = (token: string) => spinWithError(token, { multiplier: 1 });

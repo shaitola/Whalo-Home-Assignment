@@ -1,4 +1,5 @@
-import { getFullUrl, config } from './config.helper';
+import { config } from './config.helper';
+import { apiPostWithStatusCheck } from './api.helper';
 import { WheelSpinResponse, SpinOutcome, REWARD_RESOURCE_TYPES, Reward } from '../types/api.types';
 
 export interface AllRewards {
@@ -14,29 +15,10 @@ export interface SpinWheelResult {
 }
 
 export async function spinWheel(accessToken: string): Promise<SpinWheelResult> {
-  const spinUrl = getFullUrl(config.api.wheelSpinEndpoint);
-
-  const response = await fetch(spinUrl, {
-    method: 'POST',
-    headers: {
-      'accessToken': accessToken,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      multiplier: config.test.spinMultiplier,
-    }),
+  const body = await apiPostWithStatusCheck<WheelSpinResponse>(config.api.wheelSpinEndpoint, {
+    headers: { 'accessToken': accessToken },
+    data: { multiplier: config.test.spinMultiplier },
   });
-
-  const status = response.status;
-  const body: WheelSpinResponse = await response.json() as WheelSpinResponse;
-
-  if (status !== 200) {
-    throw new Error(`Wheel spin failed with status ${status}. Body: ${JSON.stringify(body)}`);
-  }
-
-  if (body.status !== 0) {
-    throw new Error(`Wheel spin returned non-zero status: ${body.status}`);
-  }
 
   const allRewards = extractAllRewards(body.response.SpinResult.Rewards);
   const coinsReward = body.response.SpinResult.Rewards.find(

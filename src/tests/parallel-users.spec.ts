@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, loginWithDeviceId } from '../helpers/login.helper';
+import { login } from '../helpers/login.helper';
 import { spinWheel } from '../helpers/wheel.helper';
 
 test.describe('Parallel Users Tests', () => {
@@ -42,9 +42,9 @@ test.describe('Parallel Users Tests', () => {
     expect(finalBalances.user3.Coins - initialBalances.user3.coins).toBe(result3.outcome.coinsEarned);
 
     const relogins = await Promise.all([
-      loginWithDeviceId(user1.deviceId, user1.loginSource),
-      loginWithDeviceId(user2.deviceId, user2.loginSource),
-      loginWithDeviceId(user3.deviceId, user3.loginSource),
+      login(user1.deviceId, user1.loginSource),
+      login(user2.deviceId, user2.loginSource),
+      login(user3.deviceId, user3.loginSource),
     ]);
 
     expect(relogins[0].userBalance.Coins).toBe(finalBalances.user1.Coins);

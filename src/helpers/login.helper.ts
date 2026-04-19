@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { config, getFullUrl } from './config.helper';
+import { config } from './config.helper';
+import { apiPostWithStatusCheck } from './api.helper';
 import { LoginResponse, UserBalance } from '../types/api.types';
 
 export interface LoginResult {
@@ -11,29 +12,14 @@ export interface LoginResult {
   rawResponse?: LoginResponse;
 }
 
-export async function login(): Promise<LoginResult> {
-  const deviceId = `${config.test.devicePrefix}_${uuidv4()}`;
-  const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidatePhone}_${uuidv4().slice(0, 8)}`;
+export async function login(deviceId?: string, loginSource?: string): Promise<LoginResult> {
+  const finalDeviceId = deviceId ?? `${config.test.devicePrefix}_${uuidv4()}`;
+  const finalLoginSource = loginSource ?? `${config.test.loginSourcePrefix}_${config.test.candidatePhone}_${uuidv4().slice(0, 8)}`;
 
-  const loginUrl = getFullUrl(config.api.loginEndpoint);
-
-  const response = await fetch(loginUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      DeviceId: deviceId,
-      LoginSource: loginSource,
-    }),
+  const body = await apiPostWithStatusCheck<LoginResponse>(config.api.loginEndpoint, {
+    headers: { 'Content-Type': 'application/json' },
+    data: { DeviceId: finalDeviceId, LoginSource: finalLoginSource },
   });
-
-  const status = response.status;
-  const body: LoginResponse = await response.json() as LoginResponse;
-
-  if (status !== 200) {
-    throw new Error(`Login failed with status ${status}. Body: ${JSON.stringify(body)}`);
-  }
 
   if (body.status !== 0) {
     throw new Error(`Login returned non-zero status: ${body.status}`);
@@ -50,43 +36,8 @@ export async function login(): Promise<LoginResult> {
   return {
     accessToken: body.response.LoginResponse.AccessToken,
     userBalance: body.response.LoginResponse.UserBalance,
-    deviceId,
-    loginSource,
-    accountCreated: body.response.LoginResponse.AccountCreated ?? false,
-    rawResponse: body,
-  };
-}
-
-export async function loginWithDeviceId(deviceId: string, loginSource: string): Promise<LoginResult> {
-  const loginUrl = getFullUrl(config.api.loginEndpoint);
-
-  const response = await fetch(loginUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      DeviceId: deviceId,
-      LoginSource: loginSource,
-    }),
-  });
-
-  const status = response.status;
-  const body: LoginResponse = await response.json() as LoginResponse;
-
-  if (status !== 200) {
-    throw new Error(`Login failed with status ${status}. Body: ${JSON.stringify(body)}`);
-  }
-
-  if (body.status !== 0) {
-    throw new Error(`Login returned non-zero status: ${body.status}`);
-  }
-
-  return {
-    accessToken: body.response.LoginResponse.AccessToken,
-    userBalance: body.response.LoginResponse.UserBalance,
-    deviceId,
-    loginSource,
+    deviceId: finalDeviceId,
+    loginSource: finalLoginSource,
     accountCreated: body.response.LoginResponse.AccountCreated ?? false,
     rawResponse: body,
   };

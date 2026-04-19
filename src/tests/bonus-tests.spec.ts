@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, loginWithDeviceId } from '../helpers/login.helper';
+import { login } from '../helpers/login.helper';
 import { spinWheel, extractAllRewards } from '../helpers/wheel.helper';
 import { validateLoginResponse, validateSpinResponse } from '../helpers/validation.helper';
 import { config } from '../helpers/config.helper';
@@ -59,7 +59,7 @@ test.describe('Bonus Tests', () => {
       console.log(`Spin ${i + 1}: earned ${spinResult.outcome.coinsEarned} coins, balance: ${coinsAfterSpins}`);
     }
 
-    const relogin = await loginWithDeviceId(deviceId, loginSource);
+    const relogin = await login(deviceId, loginSource);
     
     expect(relogin.accountCreated).toBe(false);
     expect(relogin.userBalance.Coins).toBe(coinsAfterSpins);
@@ -72,7 +72,7 @@ test.describe('Bonus Tests', () => {
     const deviceId = `${config.test.devicePrefix}_vary_${Date.now()}`;
     const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidateName}_${Date.now()}`;
 
-    const loginResult = await loginWithDeviceId(deviceId, loginSource);
+    const loginResult = await login(deviceId, loginSource);
     const spinsToPerform = Math.min(3, loginResult.userBalance.Energy);
 
     const firstSessionSpins: { selectedIndex: number; coinsEarned: number }[] = [];
@@ -85,7 +85,7 @@ test.describe('Bonus Tests', () => {
       });
     }
 
-    const relogin = await loginWithDeviceId(deviceId, loginSource);
+    const relogin = await login(deviceId, loginSource);
     const secondSessionSpins: { selectedIndex: number; coinsEarned: number }[] = [];
 
     for (let i = 0; i < spinsToPerform; i++) {
@@ -177,7 +177,7 @@ test.describe('Bonus Tests', () => {
       balanceAfterLastSpin = spinResult.response.response.SpinResult.UserBalance.Coins;
     }
 
-    const relogin = await loginWithDeviceId(deviceId, loginSource);
+    const relogin = await login(deviceId, loginSource);
     
     expect(relogin.accountCreated).toBe(false);
     expect(relogin.userBalance.Coins).toBe(balanceAfterLastSpin);
@@ -219,7 +219,7 @@ test.describe('Bonus Tests', () => {
     console.log(`Completed ${spinsCompleted} spins, earned ${totalCoinsEarned} total coins`);
     console.log(`Final coin balance: ${lastCoinBalance}`);
 
-    const relogin = await loginWithDeviceId(loginResult.deviceId, loginResult.loginSource);
+    const relogin = await login(loginResult.deviceId, loginResult.loginSource);
     
     expect(relogin.accountCreated).toBe(false);
     expect(relogin.userBalance.Coins).toBe(lastCoinBalance);
@@ -229,7 +229,7 @@ test.describe('Bonus Tests', () => {
     const deviceId = `${config.test.devicePrefix}_scripted_${Date.now()}`;
     const loginSource = `${config.test.loginSourcePrefix}_${config.test.candidateName}_scripted_${Date.now()}`;
 
-    const firstLogin = await loginWithDeviceId(deviceId, loginSource);
+    const firstLogin = await login(deviceId, loginSource);
     const initialEnergy = firstLogin.userBalance.Energy;
     console.log(`First session - Starting energy: ${initialEnergy}`);
 
@@ -242,7 +242,7 @@ test.describe('Bonus Tests', () => {
     }
     console.log(`First session - ${firstSessionIndices.length} spins, indices: [${firstSessionIndices.join(', ')}]`);
 
-    const secondLogin = await loginWithDeviceId(deviceId, loginSource);
+    const secondLogin = await login(deviceId, loginSource);
     expect(secondLogin.accountCreated).toBe(false);
     const secondSessionEnergy = secondLogin.userBalance.Energy;
     console.log(`Second session - Starting energy: ${secondSessionEnergy}`);
